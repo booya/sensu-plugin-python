@@ -13,7 +13,8 @@ setup(
     long_description="""
     """,
     install_requires=[
-        'argparse'
+        'argparse',
+        'requests'
     ],
     tests_require=[
         'pep8',

@@ -1,0 +1,29 @@
+#!/usr/bin/env python
+#coding=utf-8
+
+#
+# Copyright (C) 2014 - S. Zachariah Sprackett <zac@sprackett.com>
+#
+
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../')
+from sensu_plugin import SensuHandler
+
+
+class Filter(SensuHandler):
+    def handle(self):
+        print("Event: %s" % self.event)
+
+    def api_request(self):
+        pass
+
+    def stash_exists(self):
+        pass
+
+    def event_exists(self):
+        return True
+
+if __name__ == "__main__":
+    f = Filter()

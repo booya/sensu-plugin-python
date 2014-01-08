@@ -6,6 +6,9 @@
 #
 # Released under the same terms as Sensu (the MIT license); see LICENSE
 # for details.
+"""
+Provides primitives for implementing a Sensu metric
+"""
 
 from __future__ import print_function
 import json
@@ -14,6 +17,9 @@ from sensu_plugin.plugin import SensuPlugin
 
 
 class SensuPluginMetricJSON(SensuPlugin):
+    """
+    The framework for implementing a Sensu JSON metric
+    """
     def output(self, m):
         obj = m[0]
         if type(obj) is str or type(obj) is Exception:
@@ -23,6 +29,9 @@ class SensuPluginMetricJSON(SensuPlugin):
 
 
 class SensuPluginMetricGraphite(SensuPlugin):
+    """
+    The framework for implementing a Sensu Graphite metric
+    """
     def output(self, *m):
         if m[0] is None:
             print()
@@ -38,6 +47,9 @@ class SensuPluginMetricGraphite(SensuPlugin):
 
 
 class SensuPluginMetricStatsd(SensuPlugin):
+    """
+    The framework for implementing a Sensu Statsd metric
+    """
     def output(self, *m):
         if m[0] is None:
             print()
