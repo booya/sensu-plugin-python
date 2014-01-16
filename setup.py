@@ -17,7 +17,9 @@ setup(
         'requests'
     ],
     tests_require=[
+        'nose',
         'pep8',
-        'pylint'
+        'pylint',
+        'coverage'
     ],
 )
