@@ -14,7 +14,6 @@ from __future__ import print_function
 import atexit
 import sys
 import argparse
-import os
 import traceback
 from collections import namedtuple
 from sensu_plugin.exithook import ExitHook
@@ -76,12 +75,11 @@ class SensuPlugin(object):
     def _exitfunction(self):
         """The exit handler.  Deal with exceptions and plugins that don't
         implement the run method"""
+        self._hook.swap_exit_hook()
         if self._hook.exit_code is None and self._hook.exception is None:
-            print("Check did not exit! You should call an exit code method.")
-            sys.stdout.flush()
-            os._exit(1)
+            self.warning("Check did not exit! " +
+                         "You should call an exit code method.")
         elif self._hook.exception:
-            print("Check failed to run: %s, %s" %
-                 (sys.last_type, traceback.format_tb(sys.last_traceback)))
-            sys.stdout.flush()
-            os._exit(2)
+            self.critical("Check failed to run: %s, %s" % (
+                          sys.last_type,
+                          traceback.format_tb(sys.last_traceback)))

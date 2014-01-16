@@ -11,6 +11,7 @@ Primitives for using exithooks
 """
 
 import sys
+import os
 
 
 class ExitHook(object):
@@ -30,10 +31,18 @@ class ExitHook(object):
         sys.exit = self.exit
         sys.excepthook = self.exc_handler
 
+    def swap_exit_hook(self):
+        sys.exit = self.os_exit
+
     def exit(self, code=0):
         """Handle exit"""
         self.exit_code = code
         self._orig_exit(code)
+
+    def os_exit(self, code=0):
+        sys.stdout.flush()
+        sys.stderr.flush()
+        os._exit(code)
 
     def exc_handler(self, exc_type, exc, *_args):
         """Handle exception"""

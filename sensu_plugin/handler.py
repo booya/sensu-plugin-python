@@ -9,10 +9,12 @@
 """
 Primitives for implementing a Sensu handler
 """
+from __future__ import print_function
 import os
 import sys
 import atexit
 import requests
+#import threading
 
 import sensu_plugin.utils
 
@@ -23,9 +25,11 @@ class SensuHandler(object):
         atexit.register(self._exitfunction)
 
     def handle(self):
+        """Implementing classes should override this"""
         print('ignoring event -- no handler defined')
 
     def filter(self):
+        """Calls all of the default filters"""
         self.filter_disabled()
         self.filter_repeated()
         self.filter_silenced()
@@ -37,13 +41,13 @@ class SensuHandler(object):
         os._exit(0)
 
     def api_request(self, method, path, block):
-        s = requests.Session()
-        s.auth = (settings['api']['user'], settings['api']['password'])
+        session = requests.Session()
+        session.auth = (settings['api']['user'], settings['api']['password'])
         url = "%s:%s%s" % (settings['api']['host'], settings['api']['port'],
-                path)
+                           path)
         req = request.Request(method, url)
 # FIXME: Yield goes here
-        return s.send(prepped)
+        return session.send(prepped)
 
     def filter_disabled(self):
         try:
@@ -60,30 +64,52 @@ class SensuHandler(object):
             occurrences = self.event['check']['occurrences']
             interval = self.event['check']['interval']
             refresh = self.event['check']['refresh']
-        except:
+        except KeyError:
             pass
 
         if self.event['occurrences'] < occurrences:
             self.bail('not enough occurrences')
 
-        if self.event['occurrences'] > occurrences and self.event['action'] == 'create':
-                number = int(refresh / interval)
-                print(self.event['occurrences'] % number)
-                if number == 0 or not self.event['occurrences'] % number == 0:
-                    self.bail("only handling every %d occurrences" % number)
-
+        if (
+            self.event['occurrences'] > occurrences and
+            self.event['action'] == 'create'
+        ):
+            number = int(refresh / interval)
+            print(self.event['occurrences'] % number)
+            if number == 0 or not self.event['occurrences'] % number == 0:
+                self.bail("only handling every %d occurrences" % number)
 
     def filter_silenced(self):
-        pass
+        stashes = [
+            ['client', "/silence/%s" % self.event['client']['name']],
+            ['check', "/silence/%s/%s" % (self.event['client']['name'],
+                                          self.event['check']['name'])],
+            ['check', "/silence/all/%s" % self.event['check']['name']]
+        ]
+        for (scope, path) in stashes:
+            pass
 
     def filter_dependencies(self):
-        pass
+        if (
+            'dependencies' in self.event['check'] and
+            self.event['check']['dependencies'] is list
+        ):
+            for dep in self.event['check']['dependencies']:
+                pass
 
-    def stash_exists(self):
-        pass
+    def stash_exists(self, path):
+        resp = self.api_request('get', "/stash%s" % path)
+        if resp.code == 200:
+            return True
+        else:
+            return False
 
     def event_exists(self):
-        pass
+        resp = self.api_request('get', "/event/%s/%s" % (client, check))
+        if resp.code == 200:
+            return True
+        else:
+            return False
 
     def _exitfunction(self):
         self.event = sensu_plugin.utils.read_event(sys.stdin)
